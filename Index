@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>PADI Mobile — Feature Inventory</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:13px;background:#f1f5f9;color:#1e293b}
+  .header{background:#1e3a5f;color:#fff;padding:20px 24px}
+  .header h1{font-size:20px;font-weight:800;margin-bottom:4px}
+  .header p{opacity:.75;font-size:12px}
+  .progress-bar{background:rgba(255,255,255,.15);border-radius:6px;padding:12px 16px;margin-top:12px}
+  .progress-track{height:8px;border-radius:4px;background:rgba(255,255,255,.2);overflow:hidden;display:flex;gap:2px;margin:6px 0}
+  .progress-yes{background:#22c55e;transition:width .3s}
+  .progress-no{background:#ef4444;transition:width .3s}
+  .progress-disc{background:#f59e0b;transition:width .3s}
+  .progress-pend{flex:1;background:rgba(255,255,255,.2)}
+  .progress-labels{display:flex;gap:16px;font-size:10px;opacity:.8}
+  .instructions{background:#fff;border:1px solid #bae6fd;border-radius:10px;padding:14px 18px;margin:16px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+  .inst-item{background:#f0f9ff;border-radius:8px;padding:10px;display:flex;gap:8px}
+  .inst-icon{font-size:20px;flex-shrink:0}
+  .inst-title{font-weight:700;font-size:11px;color:#0369a1;margin-bottom:3px}
+  .inst-desc{font-size:10px;color:#475569;line-height:1.5}
+  .filters{padding:0 16px 12px;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+  .filter-label{font-size:10px;color:#94a3b8;min-width:55px}
+  .filter-btn{padding:2px 10px;border-radius:20px;border:1px solid #cbd5e1;font-size:10px;cursor:pointer;background:#fff;color:#475569}
+  .filter-btn.active{background:#1e3a5f;color:#fff;border-color:#1e3a5f}
+  .search-box{padding:6px 14px;border-radius:20px;border:1px solid #cbd5e1;font-size:11px;width:240px;margin-top:4px}
+  .segment{margin:0 16px 16px;border-radius:10px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+  .seg-header{padding:10px 14px;font-weight:700;font-size:13px;cursor:pointer;display:flex;justify-content:space-between;align-items:center}
+  .seg-summary{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:10px 14px;border-top:1px solid rgba(0,0,0,.06)}
+  .seg-card{background:#fff;border-radius:8px;padding:10px}
+  .seg-card-title{font-weight:700;font-size:10px;margin-bottom:6px}
+  .seg-highlight{font-size:10px;color:#475569;padding:2px 0;border-bottom:1px solid #f1f5f9;display:flex;gap:4px}
+  .seg-snap-row{display:flex;justify-content:space-between;padding:4px 8px;border-radius:4px;margin-bottom:3px}
+  table{width:100%;border-collapse:collapse;background:#fff}
+  th{padding:6px 9px;text-align:left;font-size:10px;font-weight:600;color:#475569;white-space:nowrap;border-bottom:1px solid #e2e8f0;background:#f1f5f9}
+  td{padding:6px 9px;border-bottom:1px solid #f8fafc;vertical-align:top}
+  tr:hover{background:#eff6ff;cursor:pointer}
+  tr:nth-child(even){background:#f8fafc}
+  tr:nth-child(even):hover{background:#eff6ff}
+  .badge{padding:2px 6px;border-radius:4px;font-size:9px;font-weight:600;white-space:nowrap;display:inline-block}
+  .ss-badge{background:#ede9fe;color:#7c3aed;padding:1px 4px;border-radius:3px;font-size:9px;margin:1px;display:inline-block}
+  .imp-badge{padding:3px 8px;border-radius:5px;font-size:10px;font-weight:700}
+  .cf-badge{padding:3px 8px;border-radius:5px;font-size:10px;font-weight:700}
+  .modal-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.45);z-index:100;align-items:center;justify-content:center}
+  .modal-overlay.open{display:flex}
+  .modal{background:#fff;border-radius:12px;padding:22px;width:560px;max-height:90vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.2)}
+  .modal-header{display:flex;justify-content:space-between;margin-bottom:14px}
+  .modal-title{font-size:14px;font-weight:700;color:#1e3a5f;margin-bottom:4px}
+  .close-btn{background:none;border:none;font-size:22px;cursor:pointer;color:#94a3b8;line-height:1}
+  .obs-box{background:#f8fafc;border-radius:8px;padding:10px;margin-bottom:10px;font-size:12px;color:#475569;line-height:1.6}
+  .pain-box{background:#fff1f2;border-radius:8px;padding:10px;margin-bottom:10px;font-size:12px;color:#b91c1c;line-height:1.6}
+  .input-label{font-size:11px;font-weight:600;color:#334155;display:block;margin-bottom:5px}
+  .input-group{margin-bottom:12px}
+  textarea,input[type=text]{width:100%;padding:8px 10px;border-radius:6px;border:1px solid #cbd5e1;font-size:12px;font-family:inherit;resize:vertical}
+  textarea:focus,input:focus{outline:none;border-color:#1e3a5f}
+  .btn-group{display:flex;gap:8px;flex-wrap:wrap}
+  .choice-btn{flex:1;padding:8px;border-radius:8px;border:1px solid #e2e8f0;background:#fff;font-size:11px;cursor:pointer;color:#475569;font-weight:500;min-width:80px}
+  .choice-btn.selected{font-weight:700;border-width:2px}
+  .save-btn{width:100%;padding:10px;background:#1e3a5f;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;margin-top:14px}
+  .save-btn:hover{background:#2d4f7c}
+  .action-bar{background:#fff;border-top:1px solid #e2e8f0;padding:14px 20px;display:flex;justify-content:space-between;align-items:center;position:sticky;bottom:0;box-shadow:0 -2px 8px rgba(0,0,0,.08)}
+  .submit-btn{padding:10px 24px;background:#1e3a5f;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer}
+  .submit-btn:disabled{background:#94a3b8;cursor:not-allowed}
+  .download-btn{padding:10px 18px;background:#0891b2;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer}
+  .status-msg{font-size:12px;font-weight:600}
+  .hidden{display:none}
+  @media(max-width:600px){
+    .instructions{grid-template-columns:1fr}
+    .seg-summary{grid-template-columns:1fr}
+    .modal{width:95vw;padding:16px}
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div style="font-size:10px;letter-spacing:2px;opacity:.6;margin-bottom:4px;text-transform:uppercase">PADI Digital Overhaul · Mobile Discovery · April 2026</div>
+  <h1>Mobile App Feature Inventory</h1>
+  <p>Audit findings across PADI App and Adventures App — please review and add your inputs below</p>
+  <div class="progress-bar">
+    <div style="font-size:11px;opacity:.8;margin-bottom:6px" id="progress-label">Review Progress — 0 of 58 features rated</div>
+    <div class="progress-track">
+      <div class="progress-yes" id="bar-yes" style="width:0%"></div>
+      <div class="progress-no" id="bar-no" style="width:0%"></div>
+      <div class="progress-disc" id="bar-disc" style="width:0%"></div>
+      <div class="progress-pend"></div>
+    </div>
+    <div class="progress-labels">
+      <span>🟢 Carry Forward: <span id="cnt-yes">0</span></span>
+      <span>🔴 Retire: <span id="cnt-no">0</span></span>
+      <span>🟡 Discuss: <span id="cnt-disc">0</span></span>
+      <span>⬜ Pending: <span id="cnt-pend">58</span></span>
+    </div>
+  </div>
+</div>
+
+<!-- INSTRUCTIONS -->
+<div class="instructions">
+  <div class="inst-item">
+    <div class="inst-icon">👁</div>
+    <div><div class="inst-title">Review Each Feature</div><div class="inst-desc">Click any row to open the feature detail. Review our audit observation and any pain points identified.</div></div>
+  </div>
+  <div class="inst-item">
+    <div class="inst-icon">⭐</div>
+    <div><div class="inst-title">Rate Strategic Importance</div><div class="inst-desc">Rate each feature: High (core to user journey), Medium (useful but not critical), or Low (nice-to-have).</div></div>
+  </div>
+  <div class="inst-item">
+    <div class="inst-icon">✅</div>
+    <div><div class="inst-title">Set Carry Forward Decision</div><div class="inst-desc">Decide: Yes (include in unified app), No (retire), or Discuss (needs further conversation on 10th April).</div></div>
+  </div>
+</div>
+
+<!-- FILTERS -->
+<div style="padding:0 16px 8px">
+  <div class="filters" style="padding:0;margin-bottom:6px">
+    <span class="filter-label">Segment:</span>
+    <button class="filter-btn active" onclick="filterSeg('All',this)">All</button>
+    <button class="filter-btn" onclick="filterSeg('Consumer Pre-cert',this)">Consumer Pre-cert</button>
+    <button class="filter-btn" onclick="filterSeg('Travel',this)">Travel</button>
+    <button class="filter-btn" onclick="filterSeg('Learning',this)">Learning</button>
+    <button class="filter-btn" onclick="filterSeg('Consumer Post-cert',this)">Consumer Post-cert</button>
+    <button class="filter-btn" onclick="filterSeg('Member / Pro',this)">Member / Pro</button>
+  </div>
+  <div class="filters" style="padding:0;margin-bottom:6px">
+    <span class="filter-label">Status:</span>
+    <button class="filter-btn active" onclick="filterStatus('All',this)">All</button>
+    <button class="filter-btn" onclick="filterStatus('verified',this)">✅ Verified</button>
+    <button class="filter-btn" onclick="filterStatus('partial',this)">⚠️ Platform Gap</button>
+    <button class="filter-btn" onclick="filterStatus('notInApp',this)">🚫 Not in App</button>
+    <button class="filter-btn" onclick="filterStatus('webview',this)">📄 Webview</button>
+    <button class="filter-btn" onclick="filterStatus('notVisible',this)">🔒 Pro Account</button>
+  </div>
+  <input class="search-box" type="text" placeholder="🔍 Search features..." oninput="filterSearch(this.value)"/>
+</div>
+
+<!-- SEGMENTS -->
+<div id="segments-container"></div>
+
+<!-- ACTION BAR -->
+<div class="action-bar">
+  <div>
+    <span class="status-msg" id="action-status" style="color:#64748b">Fill in your inputs above, then submit when ready.</span>
+  </div>
+  <div style="display:flex;gap:10px">
+    <button class="download-btn" onclick="downloadCSV()">⬇️ Download CSV</button>
+    <button class="submit-btn" onclick="submitToSheets()" id="submit-btn">📤 Submit to Axelerant</button>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal" onclick="closeModal(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="modal-title"></div>
+        <div id="modal-badges" style="margin-top:4px"></div>
+      </div>
+      <button class="close-btn" onclick="document.getElementById('modal').classList.remove('open')">✕</button>
+    </div>
+    <div class="obs-box" id="modal-obs"></div>
+    <div class="pain-box hidden" id="modal-pain-box">
+      <div style="font-weight:700;font-size:10px;margin-bottom:3px">Pain Point / Gap</div>
+      <div id="modal-pain"></div>
+    </div>
+    <div id="modal-ss" style="margin-bottom:12px"></div>
+    <div style="border-top:1px solid #e2e8f0;padding-top:14px">
+      <div style="font-weight:700;color:#1e3a5f;font-size:13px;margin-bottom:12px">Your Input</div>
+      <div class="input-group">
+        <label class="input-label">📝 Notes / Context</label>
+        <textarea id="modal-notes" rows="3" placeholder="Add any context, corrections or business reasoning..."></textarea>
+      </div>
+      <div class="input-group">
+        <label class="input-label">⭐ Strategic Importance</label>
+        <div class="btn-group">
+          <button class="choice-btn" id="imp-high" onclick="setImp('High')" style="border-color:#e2e8f0">🟢 High</button>
+          <button class="choice-btn" id="imp-medium" onclick="setImp('Medium')" style="border-color:#e2e8f0">🟡 Medium</button>
+          <button class="choice-btn" id="imp-low" onclick="setImp('Low')" style="border-color:#e2e8f0">🔴 Low</button>
+        </div>
+      </div>
+      <div class="input-group">
+        <label class="input-label">✅ Carry Forward to Unified App?</label>
+        <div class="btn-group">
+          <button class="choice-btn" id="cf-yes" onclick="setCF('Yes')">✅ Yes — Include</button>
+          <button class="choice-btn" id="cf-no" onclick="setCF('No')">❌ No — Retire</button>
+          <button class="choice-btn" id="cf-discuss" onclick="setCF('Discuss')">💬 Discuss on 10th</button>
+        </div>
+      </div>
+      <button class="save-btn" onclick="saveModal()">💾 Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzStAO4beFFCCMQzKJA52cyH10ivls6KipfRrEnyEWQLEMkb1pHkqEWwRzJKpwp3-vjTA/exec";
+
+const STATUS_MAP = {
+  verified:   { label:"✅ Verified",        bg:"#dcfce7", color:"#166534" },
+  partial:    { label:"⚠️ Platform Gap",    bg:"#fef9c3", color:"#854d0e" },
+  notVisible: { label:"🔒 Pro Account",     bg:"#e0f2fe", color:"#0369a1" },
+  notInApp:   { label:"🚫 Not in App",      bg:"#fee2e2", color:"#991b1b" },
+  webOnly:    { label:"🌐 Web Only",        bg:"#f3e8ff", color:"#7e22ce" },
+  webview:    { label:"📄 Webview",         bg:"#fff7ed", color:"#c2410c" },
+};
+
+const SEG_COLORS = {
+  "Consumer Pre-cert":  { bg:"#fce7f3", color:"#9d174d" },
+  "Learning":           { bg:"#dbeafe", color:"#1e40af" },
+  "Consumer Post-cert": { bg:"#dcfce7", color:"#166534" },
+  "Travel":             { bg:"#fff7ed", color:"#c2410c" },
+  "Member / Pro":       { bg:"#f3e8ff", color:"#7e22ce" },
+};
+
+const SEG_ORDER = ["Consumer Pre-cert","Travel","Learning","Consumer Post-cert","Member / Pro"];
+
+const SEG_META = {
+  "Consumer Pre-cert":  { desc:"Users exploring PADI for the first time — not yet certified.", highlights:["Guest home is 6 promotional tiles — all redirect externally","Android has 7+ features missing on iOS","Instagram redirect in 2 tabs — no clear user value"] },
+  "Travel":             { desc:"Divers looking to find, book and manage dive trips and adventures.", highlights:["Adventures booking flow is the strongest native experience","Search not returning results — known App Store complaint","Post-payment flow needs PADI walkthrough","Currency settings missing from PADI App"] },
+  "Learning":           { desc:"Students actively taking PADI courses and working towards certifications.", highlights:["Online learning slow to load — likely API issue","Course Catalogue on Android only — missing iOS","Several offline features not yet built","Training App sunset — offline course transfer unconfirmed"] },
+  "Consumer Post-cert": { desc:"Certified divers using the app to log dives, manage eCards and stay connected.", highlights:["eCards: No Wallet support, no offline access, in 2 tabs","Logbook has 5 confirmed gaps from support data","Club, eCard purchase, Help — all webviews, none native","Notifications missing from PADI App entirely"] },
+  "Member / Pro":       { desc:"PADI Instructors and Dive Masters managing students and professional activities.", highlights:["Pro features could not be audited — standard account only","ProChek, DiveChek, Teaching Dashboard all web-based","OLPC is web-only — no app presence","Pro experience needs significant improvement"] },
+};
+
+const FEATURES = [
+  {id:"F01",seg:"Consumer Pre-cert",app:"PADI App",func:"Onboarding Slides",obs:"5 slides with CTAs redirecting to webpages. iOS and Android consistent.",pain:"Feels like a marketing screen — limited functional value.",status:"verified",ss:["Create account → Start a class","Create account → Book adventure","Create account → Sign up for Club"]},
+  {id:"F02",seg:"Consumer Pre-cert",app:"PADI App",func:"Create Account",obs:"Account creation form.",pain:"",status:"verified",ss:["Create account → Start a class","Create account → Book adventure","Create account → Sign up for Club"]},
+  {id:"F03",seg:"Consumer Pre-cert",app:"PADI App",func:"Sign In / Forgot Password",obs:"Email + password screens with forgot password reset via email.",pain:"",status:"verified",ss:["Create account → Start a class"]},
+  {id:"F07a",seg:"Consumer Pre-cert",app:"PADI App (iOS)",func:"Home — Promotional Tiles",obs:"6 tiles: Create Account, Cert Cards, Club, Courses, Travel redirect, Instagram redirect. All external redirects.",pain:"Purely promotional — no native functional value.",status:"verified",ss:["Create account → Start a class","Create account → Book adventure"]},
+  {id:"F07b",seg:"Consumer Pre-cert",app:"PADI App (Android only)",func:"Home — Additional Tiles (Android)",obs:"eLearning Course tile (opens Education screen — missing iOS), Club tile, Limited Edition Cert Cards, PADI Offers, Torch Bearer, Book Your Vacation, Explore Hand Signals.",pain:"iOS vs Android disparity — eLearning tile missing on iOS.",status:"partial",ss:["Create account → Start a class","Create account → Sign up for Club"]},
+  {id:"F42",seg:"Consumer Pre-cert",app:"PADI App",func:"Instagram Redirect",obs:"Present in Home tab and Learn tab on both platforms.",pain:"No clear user value. No super scenario served.",status:"verified",ss:[]},
+  {id:"SEG-PC1",seg:"Consumer Pre-cert",app:"Website / Not in App",func:"Browse / Be Inspired (Marketing)",obs:"User journey starts on website or social media — not in app.",pain:"No app entry point for pre-cert inspiration journey.",status:"notInApp",ss:["Create account → Start a class","Create account → Book adventure"]},
+  {id:"SEG-PC2",seg:"Consumer Pre-cert",app:"Website / Not in App",func:"Sign Up for a Class (Website)",obs:"Currently website only per user segments.",pain:"No native app flow for class sign-up discovery.",status:"notInApp",ss:["Create account → Start a class"]},
+  {id:"A01",seg:"Travel",app:"Adventures",func:"Location Banner + Weather",obs:"Auto-detects location, shows weather and temperature. Updates based on search.",pain:"",status:"verified",ss:["Account for location, region, currency"]},
+  {id:"A02",seg:"Travel",app:"Adventures",func:"Search — Where to Dive",obs:"Search bar with tabs: Diving, Courses, Snorkelling, Dive Centres. List/Map toggle. Sort by: Default, Price, Distance.",pain:"Doesn't show search results even when the website does — App Store feedback.",status:"verified",ss:["Create account → Book adventure"]},
+  {id:"A03",seg:"Travel",app:"Adventures",func:"Advanced Filters",obs:"8 filters: Activity Type, Days/Packages, Dive Center star rating, Departure Time, Dive Experience Required, Languages, Instant Confirmation.",pain:"",status:"verified",ss:["Create account → Book adventure"]},
+  {id:"A04",seg:"Travel",app:"Adventures",func:"Dive Activity Details",obs:"Name, operator, price, dive count, next availability, duration, dive sites, dive center, package description.",pain:"Missing information for bookings — App Store feedback.",status:"verified",ss:["Create account → Book adventure"]},
+  {id:"A05",seg:"Travel",app:"Adventures",func:"Dive Center Details",obs:"Full profile, map view, directions, share. Activities listed under center.",pain:"",status:"verified",ss:["Create account → Book adventure","Prepare for dive (consumer/instructor)"]},
+  {id:"A06",seg:"Travel",app:"Adventures",func:"Destinations Browse",obs:"Destination tiles: Recently Viewed, Diving, Courses, Snorkelling, Dive Centers, Popular Activities per location.",pain:"",status:"verified",ss:["Create account → Book adventure"]},
+  {id:"A09",seg:"Travel",app:"Adventures",func:"Wishlist",obs:"Saved activities list. Not available in PADI App at all.",pain:"Missing from PADI App entirely.",status:"verified",ss:["Create account → Book adventure"]},
+  {id:"A10",seg:"Travel",app:"Adventures",func:"Cart",obs:"List of added activities. Select and proceed to payment.",pain:"",status:"verified",ss:["Create account → Book adventure"]},
+  {id:"A11",seg:"Travel",app:"Adventures",func:"Payment Flow",obs:"Info form + card details + payment. Post-payment flow not verified during audit.",pain:"Post-payment flow needs PADI walkthrough.",status:"partial",ss:["Create account → Book adventure"]},
+  {id:"A12",seg:"Travel",app:"Adventures",func:"Bookings Management",obs:"Tab exists — could not verify without making a real booking during audit.",pain:"Post-booking management needs PADI demo.",status:"partial",ss:["Create account → Book adventure"]},
+  {id:"A17",seg:"Travel",app:"Adventures",func:"Settings — Currency",obs:"Language, Currency, Units, Theme. Currency entirely missing from PADI App.",pain:"Currency missing from PADI App — critical for global users.",status:"verified",ss:["Account for location, region, currency"]},
+  {id:"SEG-T1",seg:"Travel",app:"Website Only",func:"Dive Spot Search / Dive Guide",obs:"Website only per user segments.",pain:"No app equivalent.",status:"notInApp",ss:["Create account → Book adventure"]},
+  {id:"F20",seg:"Learning",app:"PADI App",func:"Online Learning",obs:"Links to learning.padi.com for authenticated users.",pain:"Slow to load — new complaint per pre-read. Likely API performance issue.",status:"verified",ss:["Create account → Start a class","Continue class"]},
+  {id:"F21",seg:"Learning",app:"PADI App",func:"Offline Learning",obs:"Offline learning access. Confirmed to be retained in unified app.",pain:"",status:"verified",ss:["Continue class"]},
+  {id:"F09a",seg:"Learning",app:"PADI App (Android only)",func:"Course Catalogue (Android only)",obs:"Course listing with sorting and filters. Missing entirely on iOS.",pain:"iOS vs Android disparity — iOS users cannot browse course catalogue.",status:"partial",ss:["Create account → Start a class","Continue class"]},
+  {id:"F22",seg:"Learning",app:"PADI App",func:"Hand Signals",obs:"List with images on click. Available to guest and authenticated users.",pain:"",status:"verified",ss:["Prepare for dive (consumer/instructor)"]},
+  {id:"F23",seg:"Learning",app:"PADI App",func:"Knots",obs:"Animated images with descriptions. Available to guest and authenticated users.",pain:"",status:"verified",ss:["Prepare for dive (consumer/instructor)"]},
+  {id:"F14",seg:"Learning",app:"PADI App",func:"Log a Dive — Training Flow",obs:"Select Course → Select Dive Number → Fill dive details. Save Draft / Submit for Verification / Exit.",pain:"No photo upload, no start time, no current field, no multiple buddies, no Day/Night toggle.",status:"verified",ss:["Log a dive","Get log verified / Instructor verifies log"]},
+  {id:"SEG-L1",seg:"Learning",app:"Not a Feature Yet",func:"Offline Dive Log Access",obs:"Referenced in user scenarios as a proposed feature.",pain:"Not yet implemented. Critical for liveaboard/remote diving.",status:"notInApp",ss:["Log a dive"]},
+  {id:"SEG-L2",seg:"Learning",app:"Not a Feature Yet",func:"Offline Dive Logging + Resync",obs:"Referenced in user scenarios as a proposed feature.",pain:"Not yet implemented. Scope needs confirmation.",status:"notInApp",ss:["Log a dive"]},
+  {id:"SEG-L3",seg:"Learning",app:"Not a Feature Yet",func:"Offline eCard Access",obs:"Referenced in user scenarios as a proposed feature.",pain:"Not yet implemented. Divers need eCard at point of diving with no internet.",status:"notInApp",ss:["Show eCard"]},
+  {id:"SEG-L4",seg:"Learning",app:"Training App (Sunset)",func:"Offline Course Taking (Nitrox etc.)",obs:"Training App is sunset — transfer to unified app needs confirmation.",pain:"Liveaboard/Aggressor scenario. Fate in unified app unconfirmed.",status:"notInApp",ss:["Continue class"]},
+  {id:"F18",seg:"Consumer Post-cert",app:"PADI App",func:"eCards — View",obs:"Shows card details when logged in. Accessible from Home tab and Dive tab.",pain:"No Apple/Google Wallet support. No offline access. Complaints about eCard pricing.",status:"verified",ss:["Show eCard"]},
+  {id:"F10b",seg:"Consumer Post-cert",app:"PADI App (Android)",func:"eCards — Empty State (Android)",obs:"When no eCards: Learn More + Contact Us CTAs, course listing with filters, Limited Edition Cards promo.",pain:"iOS empty state likely differs.",status:"partial",ss:["Purchase eCard","Show eCard"]},
+  {id:"F11",seg:"Consumer Post-cert",app:"PADI App",func:"Logbook",obs:"Log total time, sort by, filter: All / Training / Recreational / Drafts.",pain:"No photo upload, no start time, no current, no multiple buddies, no Day/Night toggle, search issues.",status:"verified",ss:["Log a dive"]},
+  {id:"F16",seg:"Consumer Post-cert",app:"PADI App",func:"Log a Dive — Recreational Flow",obs:"Direct form with Conditions, Equipment and Experience sections. Richest data capture form in the app.",pain:"No photo upload, no multiple buddies.",status:"verified",ss:["Log a dive"]},
+  {id:"F24",seg:"Consumer Post-cert",app:"PADI App",func:"Checklists",obs:"Checklist selection for dive prep. Authenticated users only.",pain:"Not available offline. Guest cannot access.",status:"verified",ss:["Prepare for dive (consumer/instructor)"]},
+  {id:"F19",seg:"Consumer Post-cert",app:"PADI App",func:"Dive Shop Locator",obs:"Webview — location-based search with filters. Accessible from Home and Dive tabs.",pain:"Webview — not native. Less capable than Adventures Dive Center experience.",status:"webview",ss:["Prepare for dive (consumer/instructor)"]},
+  {id:"SEG-C1",seg:"Consumer Post-cert",app:"PADI App (Webview)",func:"Club Membership — Join",obs:"App tiles redirect to club webpage. Android pulls club page as in-app webview.",pain:"No native club experience.",status:"webview",ss:["Create account → Sign up for Club"]},
+  {id:"SEG-C2",seg:"Consumer Post-cert",app:"PADI App (Webview)",func:"Club Benefits",obs:"Web-based per user segments. Android only.",pain:"Not native. iOS gap entirely.",status:"webview",ss:["Create account → Sign up for Club"]},
+  {id:"SEG-C3",seg:"Consumer Post-cert",app:"PADI App (Webview)",func:"Purchase eCard",obs:"Redirects to store.padi.com — webview on Android.",pain:"Critical revenue feature handled via webview — not native.",status:"webview",ss:["Purchase eCard"]},
+  {id:"SEG-C4",seg:"Consumer Post-cert",app:"PADI App (Webview)",func:"Redeem Free eCard (Club)",obs:"Web-based per user segments.",pain:"Club benefit redemption path unclear end-to-end.",status:"webview",ss:["Purchase eCard","Create account → Sign up for Club"]},
+  {id:"SEG-C5",seg:"Consumer Post-cert",app:"PADI App (Webview)",func:"Color Correction (Images)",obs:"Web-based Android only per user segments.",pain:"Very niche feature.",status:"webview",ss:[]},
+  {id:"A16",seg:"Consumer Post-cert",app:"Adventures",func:"Vouchers",obs:"Requires login — could not fully verify during audit.",pain:"Club benefit redemption path needs clarification.",status:"notVisible",ss:["Create account → Sign up for Club"]},
+  {id:"A15",seg:"Consumer Post-cert",app:"Adventures",func:"Dive Buddy",obs:"Requires login — could not fully verify during audit.",pain:"Doesn't save dive buddy info — App Store feedback.",status:"notVisible",ss:["Log a dive"]},
+  {id:"F28",seg:"Consumer Post-cert",app:"PADI App",func:"Help & Support",obs:"Webview — web form to submit support request. Available to guest and authenticated users.",pain:"Webview — not native.",status:"webview",ss:[]},
+  {id:"F29",seg:"Consumer Post-cert",app:"PADI App",func:"Feedback",obs:"Webview — web form to submit feedback.",pain:"Webview — not native.",status:"webview",ss:[]},
+  {id:"F30",seg:"Consumer Post-cert",app:"PADI App",func:"About (App Version + Privacy)",obs:"App version number and Privacy Policy.",pain:"",status:"verified",ss:[]},
+  {id:"A18",seg:"Consumer Post-cert",app:"Adventures",func:"Notifications",obs:"Notification preferences in Adventures account section.",pain:"Not present in PADI App at all — gap.",status:"verified",ss:[]},
+  {id:"A19",seg:"Consumer Post-cert",app:"Adventures",func:"Help & Rate App",obs:"Help section and app rating prompt in Adventures account.",pain:"Duplicate help entry across both apps.",status:"verified",ss:[]},
+  {id:"F22b",seg:"Member / Pro",app:"PADI App",func:"Hand Signals (for students)",obs:"Instructors use this for student support — same feature as consumer view.",pain:"",status:"verified",ss:["Prepare for dive (consumer/instructor)"]},
+  {id:"F24b",seg:"Member / Pro",app:"PADI App",func:"Checklists for Students",obs:"Instructors use checklists for students and while guiding.",pain:"Overlap with consumer checklists — needs clarification.",status:"partial",ss:["Prepare for dive (consumer/instructor)"]},
+  {id:"F44",seg:"Member / Pro",app:"PADI App",func:"ProChek",obs:"Not visible with standard account — Pro account required. Verify instructor credentials.",pain:"Not audited. Needs PADI demo.",status:"notVisible",ss:["Prepare for dive (consumer/instructor)"]},
+  {id:"P01",seg:"Member / Pro",app:"PADI App",func:"DiveChek",obs:"Not visible with standard account — Pro account required. Verify diver certification.",pain:"Currently via web-based ProSite. Not audited.",status:"notVisible",ss:["Prepare for dive (consumer/instructor)","Get log verified / Instructor verifies log"]},
+  {id:"P02",seg:"Member / Pro",app:"PADI App",func:"Dive Planning and Tables",obs:"Web-based ProSite feature — not visible in standard app.",pain:"Not native.",status:"webOnly",ss:["Prepare for dive (consumer/instructor)"]},
+  {id:"P05",seg:"Member / Pro",app:"PADI App",func:"Teaching Status Dashboard",obs:"Pro account only. SOW MyPADI section: teaching status, renewals, student processing, rosters, reporting.",pain:"Not audited — Pro account required.",status:"notVisible",ss:["Get log verified / Instructor verifies log"]},
+  {id:"P06",seg:"Member / Pro",app:"PADI App",func:"Instructor eCard",obs:"Pro account only. Instructors check their own eCards to prove teaching level.",pain:"Not audited — Pro account required.",status:"notVisible",ss:["Show eCard"]},
+  {id:"P04",seg:"Member / Pro",app:"PADI App",func:"Review Materials and Standards",obs:"Pro account only. Instructors review materials and standards before teaching.",pain:"Not audited — Pro account required.",status:"notVisible",ss:["Prepare for dive (consumer/instructor)"]},
+  {id:"P07",seg:"Member / Pro",app:"Website Only",func:"OLPC — Student Registration",obs:"Web only. Register students, send codes, check eRecords, process certifications.",pain:"Entirely web-based — no app presence.",status:"webOnly",ss:["Create account → Start a class","Get log verified / Instructor verifies log"]},
+  {id:"SEG-M1",seg:"Member / Pro",app:"PADI App (Webview)",func:"ProSite Access (Multiple Pro Tools)",obs:"Multiple Pro features via web-based ProSite — Dive Planning, DiveChek, DM prereq check.",pain:"Key Pro workflows are webviews — not native.",status:"webview",ss:["Prepare for dive (consumer/instructor)"]},
+];
+
+// State
+const state = {};
+FEATURES.forEach(f => { state[f.id] = { notes:"", imp:"", cf:"" }; });
+
+let activeModal = null;
+let segFilter = "All";
+let statusFilter = "All";
+let searchQuery = "";
+
+// Build UI
+function buildSegments() {
+  const container = document.getElementById("segments-container");
+  container.innerHTML = "";
+  SEG_ORDER.forEach((seg, idx) => {
+    const features = FEATURES.filter(f => f.seg === seg);
+    const sc = SEG_COLORS[seg];
+    const meta = SEG_META[seg];
+    const div = document.createElement("div");
+    div.className = "segment";
+    div.id = "seg-"+seg.replace(/\s|\//g,"_");
+    div.innerHTML = `
+      <div class="seg-header" style="background:${sc.bg};color:${sc.color}" onclick="toggleSeg(this)">
+        <span><span style="background:${sc.color};color:${sc.bg};border-radius:4px;padding:1px 6px;font-size:10px;margin-right:6px">Session ${idx+1}</span>👤 ${seg} — ${features.length} features</span>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span style="font-size:10px;font-weight:400;background:rgba(255,255,255,0.5);padding:2px 8px;border-radius:10px" id="seg-progress-${seg.replace(/\s|\//g,"_")}">0/${features.length} rated</span>
+          <span style="font-size:11px;font-weight:400">▼</span>
+        </div>
+      </div>
+      <div class="seg-summary" style="background:${sc.bg}">
+        <div class="seg-card">
+          <div class="seg-card-title" style="color:${sc.color}">About this segment</div>
+          <div style="font-size:11px;color:#475569;margin-bottom:8px">${meta.desc}</div>
+          <div class="seg-card-title" style="color:#334155">Key findings from our audit</div>
+          ${meta.highlights.map(h=>`<div class="seg-highlight"><span style="color:${sc.color}">•</span>${h}</div>`).join("")}
+        </div>
+        <div class="seg-card">
+          <div class="seg-card-title" style="color:#334155">Segment snapshot</div>
+          ${[
+            {l:"Total features",v:features.length,bg:"#f8fafc"},
+            {l:"✅ Verified in app",v:features.filter(f=>f.status==="verified").length,bg:"#dcfce7"},
+            {l:"⚠️ Platform gap",v:features.filter(f=>f.status==="partial").length,bg:"#fef9c3"},
+            {l:"🚫 Not in app yet",v:features.filter(f=>f.status==="notInApp").length,bg:"#fee2e2"},
+            {l:"🌐 Web / Webview",v:features.filter(f=>f.status==="webOnly"||f.status==="webview").length,bg:"#f3e8ff"},
+            {l:"🔒 Pro account",v:features.filter(f=>f.status==="notVisible").length,bg:"#e0f2fe"},
+          ].map(s=>`<div class="seg-snap-row" style="background:${s.bg}"><span style="font-size:10px;color:#475569">${s.l}</span><span style="font-size:11px;font-weight:700;color:#1e3a5f">${s.v}</span></div>`).join("")}
+        </div>
+      </div>
+      <div style="overflow-x:auto" id="table-${seg.replace(/\s|\//g,"_")}">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th><th>App</th><th>Feature</th><th>Observation</th><th>Pain Point / Gap</th><th>Status</th><th>Super Scenarios</th><th>PADI Notes</th><th>Importance</th><th>Carry Forward?</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-${seg.replace(/\s|\//g,"_")}"></tbody>
+        </table>
+      </div>`;
+    container.appendChild(div);
+    renderRows(seg);
+  });
+}
+
+function renderRows(seg) {
+  const key = seg.replace(/\s|\//g,"_");
+  const tbody = document.getElementById("tbody-"+key);
+  if (!tbody) return;
+  tbody.innerHTML = "";
+  const features = FEATURES.filter(f => {
+    if (f.seg !== seg) return false;
+    if (segFilter !== "All" && f.seg !== segFilter) return false;
+    if (statusFilter !== "All" && f.status !== statusFilter) return false;
+    if (searchQuery && !f.func.toLowerCase().includes(searchQuery) && !f.id.toLowerCase().includes(searchQuery) && !f.obs.toLowerCase().includes(searchQuery)) return false;
+    return true;
+  });
+  features.forEach(f => {
+    const s = state[f.id];
+    const st = STATUS_MAP[f.status];
+    const impStyle = s.imp==="High"?"background:#dcfce7;color:#166534":s.imp==="Medium"?"background:#fef9c3;color:#854d0e":s.imp==="Low"?"background:#fee2e2;color:#991b1b":"background:transparent;color:#cbd5e1";
+    const cfStyle = s.cf==="Yes"?"background:#dcfce7;color:#166534":s.cf==="No"?"background:#fee2e2;color:#991b1b":s.cf==="Discuss"?"background:#fef3c7;color:#92400e":"background:transparent;color:#cbd5e1";
+    const tr = document.createElement("tr");
+    tr.onclick = () => openModal(f.id);
+    tr.innerHTML = `
+      <td><strong style="color:#1e3a5f;font-size:11px">${f.id}</strong></td>
+      <td style="font-size:10px;color:#64748b;white-space:nowrap">${f.app}</td>
+      <td style="font-weight:600;font-size:11px;white-space:nowrap">${f.func}</td>
+      <td style="font-size:11px;color:#475569;max-width:180px">${f.obs}</td>
+      <td style="font-size:10px;color:${f.pain?"#b91c1c":"#94a3b8"};max-width:140px">${f.pain||"—"}</td>
+      <td style="white-space:nowrap"><span class="badge" style="background:${st.bg};color:${st.color}">${st.label}</span></td>
+      <td style="max-width:180px">${f.ss.length>0?f.ss.map(s=>`<span class="ss-badge">${s}</span>`).join(""):`<span style="color:#fca5a5;font-size:9px;font-style:italic">No scenario</span>`}</td>
+      <td style="font-size:10px;color:#64748b;max-width:140px" id="notes-cell-${f.id}">${s.notes||`<span style="color:#cbd5e1;font-style:italic">Click to add</span>`}</td>
+      <td style="white-space:nowrap" id="imp-cell-${f.id}"><span class="imp-badge" style="${impStyle}">${s.imp||"Rate"}</span></td>
+      <td style="white-space:nowrap" id="cf-cell-${f.id}"><span class="cf-badge" style="${cfStyle}">${s.cf||"Decide"}</span></td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+function toggleSeg(header) {
+  const seg = header.closest(".segment");
+  const key = seg.id.replace("seg-","");
+  const table = document.getElementById("table-"+key);
+  const summary = seg.querySelector(".seg-summary");
+  const arrow = header.querySelector("span:last-child");
+  if (table.style.display === "none") {
+    table.style.display = ""; summary.style.display = ""; arrow.textContent = "▼";
+  } else {
+    table.style.display = "none"; summary.style.display = "none"; arrow.textContent = "▶";
+  }
+}
+
+function openModal(id) {
+  activeModal = id;
+  const f = FEATURES.find(x=>x.id===id);
+  const s = state[id];
+  const st = STATUS_MAP[f.status];
+  const sc = SEG_COLORS[f.seg];
+  document.getElementById("modal-title").textContent = id+" — "+f.func;
+  document.getElementById("modal-badges").innerHTML = `
+    <span class="badge" style="background:${sc.bg};color:${sc.color};margin-right:4px">${f.seg}</span>
+    <span class="badge" style="background:${st.bg};color:${st.color}">${st.label}</span>`;
+  document.getElementById("modal-obs").innerHTML = `<div style="font-weight:600;font-size:10px;color:#334155;margin-bottom:3px">Observation</div>${f.obs}`;
+  if (f.pain) {
+    document.getElementById("modal-pain").textContent = f.pain;
+    document.getElementById("modal-pain-box").classList.remove("hidden");
+  } else {
+    document.getElementById("modal-pain-box").classList.add("hidden");
+  }
+  document.getElementById("modal-ss").innerHTML = f.ss.length>0
+    ? `<div style="font-weight:600;font-size:10px;color:#7c3aed;margin-bottom:5px">User Journey Scenarios</div>${f.ss.map(s=>`<span class="ss-badge" style="font-size:10px;padding:2px 7px;margin:2px">${s}</span>`).join("")}`
+    : "";
+  document.getElementById("modal-notes").value = s.notes;
+  setImpUI(s.imp); setCFUI(s.cf);
+  document.getElementById("modal").classList.add("open");
+}
+
+function closeModal(e) {
+  if (e.target === document.getElementById("modal")) {
+    document.getElementById("modal").classList.remove("open");
+  }
+}
+
+function setImp(v) { setImpUI(v); }
+function setImpUI(v) {
+  ["high","medium","low"].forEach(x => {
+    const btn = document.getElementById("imp-"+x);
+    const val = x.charAt(0).toUpperCase()+x.slice(1);
+    const styles = {High:"background:#dcfce7;color:#166534;border-color:#166534",Medium:"background:#fef9c3;color:#854d0e;border-color:#854d0e",Low:"background:#fee2e2;color:#991b1b;border-color:#991b1b"};
+    btn.style.cssText = v===val ? styles[val] : "background:#fff;color:#475569;border-color:#e2e8f0";
+    btn.className = "choice-btn" + (v===val?" selected":"");
+  });
+}
+
+function setCF(v) { setCFUI(v); }
+function setCFUI(v) {
+  const map = {Yes:"imp-yes",No:"imp-no",Discuss:"imp-discuss"};
+  ["cf-yes","cf-no","cf-discuss"].forEach(id => {
+    const btn = document.getElementById(id);
+    const val = id==="cf-yes"?"Yes":id==="cf-no"?"No":"Discuss";
+    const styles = {Yes:"background:#dcfce7;color:#166534;border-color:#166534",No:"background:#fee2e2;color:#991b1b;border-color:#991b1b",Discuss:"background:#fef3c7;color:#92400e;border-color:#92400e"};
+    btn.style.cssText = v===val ? styles[val] : "background:#fff;color:#475569;border-color:#e2e8f0";
+    btn.className = "choice-btn" + (v===val?" selected":"");
+  });
+}
+
+function getSelectedImp() {
+  const btns = ["high","medium","low"];
+  for (const x of btns) {
+    if (document.getElementById("imp-"+x).classList.contains("selected"))
+      return x.charAt(0).toUpperCase()+x.slice(1);
+  }
+  return "";
+}
+function getSelectedCF() {
+  if (document.getElementById("cf-yes").classList.contains("selected")) return "Yes";
+  if (document.getElementById("cf-no").classList.contains("selected")) return "No";
+  if (document.getElementById("cf-discuss").classList.contains("selected")) return "Discuss";
+  return "";
+}
+
+function saveModal() {
+  const id = activeModal;
+  const f = FEATURES.find(x=>x.id===id);
+  state[id].notes = document.getElementById("modal-notes").value;
+  state[id].imp = getSelectedImp();
+  state[id].cf = getSelectedCF();
+  const impStyle = state[id].imp==="High"?"background:#dcfce7;color:#166534":state[id].imp==="Medium"?"background:#fef9c3;color:#854d0e":state[id].imp==="Low"?"background:#fee2e2;color:#991b1b":"background:transparent;color:#cbd5e1";
+  const cfStyle = state[id].cf==="Yes"?"background:#dcfce7;color:#166534":state[id].cf==="No"?"background:#fee2e2;color:#991b1b":state[id].cf==="Discuss"?"background:#fef3c7;color:#92400e":"background:transparent;color:#cbd5e1";
+  const notesCell = document.getElementById("notes-cell-"+id);
+  const impCell = document.getElementById("imp-cell-"+id);
+  const cfCell = document.getElementById("cf-cell-"+id);
+  if (notesCell) notesCell.textContent = state[id].notes || "";
+  if (impCell) impCell.innerHTML = `<span class="imp-badge" style="${impStyle}">${state[id].imp||"Rate"}</span>`;
+  if (cfCell) cfCell.innerHTML = `<span class="cf-badge" style="${cfStyle}">${state[id].cf||"Decide"}</span>`;
+  document.getElementById("modal").classList.remove("open");
+  updateProgress();
+}
+
+function updateProgress() {
+  const total = FEATURES.length;
+  const yes = FEATURES.filter(f=>state[f.id].cf==="Yes").length;
+  const no = FEATURES.filter(f=>state[f.id].cf==="No").length;
+  const disc = FEATURES.filter(f=>state[f.id].cf==="Discuss").length;
+  const rated = FEATURES.filter(f=>state[f.id].imp).length;
+  const pend = total - yes - no - disc;
+  document.getElementById("bar-yes").style.width = (yes/total*100)+"%";
+  document.getElementById("bar-no").style.width = (no/total*100)+"%";
+  document.getElementById("bar-disc").style.width = (disc/total*100)+"%";
+  document.getElementById("cnt-yes").textContent = yes;
+  document.getElementById("cnt-no").textContent = no;
+  document.getElementById("cnt-disc").textContent = disc;
+  document.getElementById("cnt-pend").textContent = pend;
+  document.getElementById("progress-label").textContent = `Review Progress — ${rated} of ${total} features rated`;
+  SEG_ORDER.forEach(seg => {
+    const key = seg.replace(/\s|\//g,"_");
+    const el = document.getElementById("seg-progress-"+key);
+    if (!el) return;
+    const segFeats = FEATURES.filter(f=>f.seg===seg);
+    const segRated = segFeats.filter(f=>state[f.id].imp).length;
+    const segCF = segFeats.filter(f=>state[f.id].cf==="Yes").length;
+    el.textContent = `${segRated}/${segFeats.length} rated · ${segCF} carry forward`;
+  });
+}
+
+function filterSeg(val, btn) {
+  segFilter = val;
+  document.querySelectorAll(".filters .filter-btn").forEach(b => {
+    if (b.textContent === btn.textContent) b.classList.add("active");
+    else if (["All","Consumer Pre-cert","Travel","Learning","Consumer Post-cert","Member / Pro"].includes(b.textContent)) b.classList.remove("active");
+  });
+  SEG_ORDER.forEach(seg => renderRows(seg));
+}
+
+function filterStatus(val, btn) {
+  statusFilter = val;
+  document.querySelectorAll(".filters .filter-btn").forEach(b => {
+    if (["All","✅ Verified","⚠️ Platform Gap","🚫 Not in App","📄 Webview","🔒 Pro Account"].includes(b.textContent)) {
+      b.classList.toggle("active", b === btn);
+    }
+  });
+  SEG_ORDER.forEach(seg => renderRows(seg));
+}
+
+function filterSearch(val) {
+  searchQuery = val.toLowerCase();
+  SEG_ORDER.forEach(seg => renderRows(seg));
+}
+
+function downloadCSV() {
+  const headers = ["ID","Segment","App","Feature","Observation","Pain Point","Status","Super Scenarios","PADI Notes","Importance","Carry Forward"];
+  const rows = [headers.join(","), ...FEATURES.map(f => [
+    f.id, f.seg, `"${f.app}"`, `"${f.func}"`,
+    `"${f.obs.replace(/"/g,'""')}"`,
+    `"${(f.pain||"").replace(/"/g,'""')}"`,
+    STATUS_MAP[f.status]?.label||f.status,
+    `"${f.ss.join("; ")}"`,
+    `"${(state[f.id].notes||"").replace(/"/g,'""')}"`,
+    state[f.id].imp||"", state[f.id].cf||""
+  ].join(","))];
+  const blob = new Blob([rows.join("\n")], {type:"text/csv;charset=utf-8;"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a"); a.href=url; a.download="PADI_Feature_Inventory.csv"; a.click();
+  URL.revokeObjectURL(url);
+}
+
+async function submitToSheets() {
+  const btn = document.getElementById("submit-btn");
+  const status = document.getElementById("action-status");
+  btn.disabled = true; btn.textContent = "⏳ Submitting...";
+  status.style.color = "#f59e0b"; status.textContent = "Sending your inputs to Axelerant...";
+  const payload = FEATURES.map(f => ({
+    id:f.id, seg:f.seg, app:f.app, func:f.func,
+    obs:f.obs, pain:f.pain||"",
+    status:STATUS_MAP[f.status]?.label||f.status,
+    ss:f.ss, notes:state[f.id].notes||"",
+    imp:state[f.id].imp||"", cf:state[f.id].cf||""
+  }));
+  try {
+    await fetch(SCRIPT_URL, {method:"POST",mode:"no-cors",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
+    btn.style.background = "#22c55e"; btn.textContent = "✅ Submitted Successfully";
+    status.style.color = "#22c55e"; status.textContent = "Your inputs have been sent to the Axelerant team. Thank you!";
+  } catch(e) {
+    btn.disabled = false; btn.textContent = "📤 Submit to Axelerant";
+    status.style.color = "#ef4444"; status.textContent = "Submission failed — please try Download CSV as backup.";
+  }
+}
+
+buildSegments();
+</script>
+</body>
+</html>
