@@ -294,6 +294,36 @@ let segFilter = "All";
 let statusFilter = "All";
 let searchQuery = "";
 
+// Load existing data from Google Sheet on page open
+async function loadFromSheet() {
+  const statusEl = document.getElementById("action-status");
+  statusEl.style.color = "#f59e0b";
+  statusEl.textContent = "⏳ Loading saved inputs...";
+  try {
+    const res = await fetch(SCRIPT_URL, { method:"GET", mode:"cors" });
+    const data = await res.json();
+    if (data && data.length > 0) {
+      data.forEach(row => {
+        if (state[row.id]) {
+          state[row.id].notes = row.notes || "";
+          state[row.id].imp   = row.imp   || "";
+          state[row.id].cf    = row.cf    || "";
+        }
+      });
+      statusEl.style.color = "#22c55e";
+      statusEl.textContent = "✅ Previous inputs loaded. Continue reviewing or submit when ready.";
+    } else {
+      statusEl.style.color = "#64748b";
+      statusEl.textContent = "Fill in your inputs above, then submit when ready.";
+    }
+  } catch(e) {
+    statusEl.style.color = "#64748b";
+    statusEl.textContent = "Fill in your inputs above, then submit when ready.";
+  }
+  SEG_ORDER.forEach(seg => renderRows(seg));
+  updateProgress();
+}
+
 // Build UI
 function buildSegments() {
   const container = document.getElementById("segments-container");
@@ -571,6 +601,7 @@ async function submitToSheets() {
 }
 
 buildSegments();
+loadFromSheet();
 </script>
 </body>
 </html>
